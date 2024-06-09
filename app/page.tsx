@@ -7,22 +7,34 @@ import Button, { BUTTON_TYPE} from '@/components/molecules/ButtonBase';
 import Modal from '@/components/organisms/Modal';
 import UserList from '@/components/organisms/UserList';
 import fetchUserData, { User } from '@/services/fetchUserData';
+import { useSelector, useDispatch } from 'react-redux';
 import { blue } from '@mui/material/colors';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
+import rootReducer from '@/reducers';
+import { IState as IUserState } from '@/reducers/user'
+
+const store = createStore(rootReducer);
 
 export default function Home() {
+  return <Provider store={store}><Lotto/></Provider>
+}
+
+function Lotto() {
   const [time, setTime] = useState<Dayjs | null>(null);
   const [tempTime, setTempTime] = useState<Dayjs | null>(null);
   const [leftSeconds, setLeftSeconds] = useState<number | null>(null);
   const [timeModalOpen, setTimeModalOpen] = useState<boolean>(false);
-  const [userList, setUserList] = useState<User[]>([]);
-  const [targetUser, setTargetUser] = useState<User | null>(null);
+  const dispatch = useDispatch()
+  const userList = useSelector((state: { user: IUserState }) => state.user.userList);
+  const targetUser = useSelector((state: { user: IUserState }) => state.user.targetUser);
   const timer = useRef<number | undefined>(undefined);
 
   const clear = () => window.clearInterval(timer.current);
 
   const getUserData = async () => {
     const data = await fetchUserData();
-    setUserList(data.results);
+    dispatch({type: 'SET_USER_LIST', userList: data.results});
   };
 
   const startCount = () => {
@@ -42,7 +54,7 @@ export default function Home() {
     setTime(null);
     setTempTime(null);
     setLeftSeconds(null);
-    setTargetUser(null);
+    dispatch({type: 'RESET_TARGET_USER'});
   };
 
   useEffect(() => {
@@ -50,12 +62,11 @@ export default function Home() {
     if (leftSeconds == 0) {
       clear();
       const targetId = Math.trunc(Math.random() * userList.length);
-      setTargetUser(userList[targetId]);
+      dispatch({type: 'SET_TARGET_USER', targetUserId: targetId});
     };
   }, [leftSeconds]);
 
   useEffect(() => {
-    setTargetUser(null);
     getUserData();
     return clear;
   }, []);
