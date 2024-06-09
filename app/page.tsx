@@ -22,13 +22,17 @@ export default function Home() {
 }
 
 function Lotto() {
-  const dispatch = useDispatch()
-  const time = useSelector((state: { timer: ITimerState }) => state.timer.time);
-  const tempTime = useSelector((state: { timer: ITimerState }) => state.timer.tempTime);
-  const leftSeconds = useSelector((state: { timer: ITimerState }) => state.timer.leftSeconds);
-  const timeModalOpen = useSelector((state: { timer: ITimerState }) => state.timer.timeModalOpen);
-  const userList = useSelector((state: { user: IUserState }) => state.user.userList);
-  const targetUser = useSelector((state: { user: IUserState }) => state.user.targetUser);
+  const dispatch = useDispatch();
+  const {
+    time,
+    tempTime,
+    leftSeconds,
+    timeModalOpen,
+  } = useSelector((state: { timer: ITimerState }) => state.timer);
+  const {
+    userList,
+    targetUser,
+  } = useSelector((state: { user: IUserState }) => state.user);
   const timer = useRef<number | undefined>(undefined);
 
   const clear = () => window.clearInterval(timer.current);
@@ -106,7 +110,7 @@ function Lotto() {
                   </div>
                 </div>
               </Modal>
-              <Button className="m-1" onClick={startCount} disabled={!time}>開始</Button>
+              <Button className="m-1" onClick={startCount} disabled={!time || (leftSeconds !== null && leftSeconds > 0)}>開始</Button>
             </div>
             <div className="text-8xl m-5" style={{color: blue[500]}}>
               {leftSeconds === null ?
