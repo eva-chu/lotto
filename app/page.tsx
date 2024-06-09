@@ -1,112 +1,78 @@
-import Image from "next/image";
+'use client'
+
+import { useState, useEffect, useRef } from "react";
+import dayjs, { Dayjs } from 'dayjs';
+import TimePicker from "@/components/organisms/TimePicker";
+import Button, { BUTTON_TYPE} from '@/components/molecules/ButtonBase';
+import Modal from '@/components/organisms/Modal';
+import { blue } from '@mui/material/colors';
 
 export default function Home() {
+  const [time, setTime] = useState<Dayjs | null>(null);
+  const [tempTime, setTempTime] = useState<Dayjs | null>(null);
+  const [leftSeconds, setLeftSeconds] = useState<number>(0);
+  const [timeModalOpen, setTimeModalOpen] = useState<boolean>(false);
+  const timer = useRef<number | undefined>(undefined);
+
+  const clear = () => window.clearInterval(timer.current);
+
+  const startCount = () => {
+    if (time === null) return; 
+    setLeftSeconds(Number(time.format('s')));
+    timer.current = window.setInterval(() => {
+      setLeftSeconds((time) => time - 1);
+    }, 1000);
+  };
+
+  const setCount = () => {
+    setTime(tempTime);
+    setTimeModalOpen(false);
+  };
+
+  useEffect(() => {
+    if (leftSeconds == 0) {
+      clear();
+    };
+  }, [leftSeconds]);
+
+  useEffect(() => {
+    return clear;
+  }, []);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="flex h-screen items-center justify-between">
+      <div className="flex flex-col items-center text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:text-left">   
+        <h1 className="font-bold lg:text-2xl mb-5">抽獎時間</h1> 
+        <div className="flex items-center justify-between">
+          <TimePicker   
+            value={time}
+            disabled
+            onChange={(newValue: any) => setTime(newValue)} />
+          <Modal 
+            text="定時" 
+            open={timeModalOpen} 
+            handleOpen={()=>setTimeModalOpen(true)}
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+            <div className="flex flex-col items-center justify-between">
+              <div className="mb-5">
+                <TimePicker   
+                  value={tempTime}
+                  onChange={(newValue: any) => setTempTime(newValue)} />
+              </div>
+              <div className="flex items-center w-full">
+                <Button className="m-1 flex-1" onClick={setCount}>確認</Button>
+                <Button type={BUTTON_TYPE.CANCEL} className="m-1 flex-1"  onClick={()=>setTimeModalOpen(false)}>取消</Button>
+              </div>
+            </div>
+          </Modal>
+          <Button className="m-1" onClick={startCount} disabled={!time}>開始</Button>
+        </div>
+        <div className="text-8xl m-5" style={{color: blue[500]}}>
+          {`${Math.trunc(leftSeconds / 60) < 10 ? '0' + Math.trunc(leftSeconds / 60) : Math.trunc(leftSeconds / 60)} : ${(leftSeconds % 60) < 10 ? '0' + (leftSeconds % 60) : (leftSeconds % 60)}`}
         </div>
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+      <div className="flex flex-col items-center text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:text-left">  
+        <h1 className="font-bold lg:text-2xl">參與抽獎名單</h1>         
       </div>
     </main>
   );
