@@ -12,7 +12,8 @@ import { blue } from '@mui/material/colors';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 import rootReducer from '@/reducers';
-import { IState as IUserState } from '@/reducers/user'
+import { IState as IUserState } from '@/reducers/user';
+import { IState as ITimerState } from '@/reducers/timer';
 
 const store = createStore(rootReducer);
 
@@ -21,11 +22,11 @@ export default function Home() {
 }
 
 function Lotto() {
-  const [time, setTime] = useState<Dayjs | null>(null);
-  const [tempTime, setTempTime] = useState<Dayjs | null>(null);
-  const [leftSeconds, setLeftSeconds] = useState<number | null>(null);
-  const [timeModalOpen, setTimeModalOpen] = useState<boolean>(false);
   const dispatch = useDispatch()
+  const time = useSelector((state: { timer: ITimerState }) => state.timer.time);
+  const tempTime = useSelector((state: { timer: ITimerState }) => state.timer.tempTime);
+  const leftSeconds = useSelector((state: { timer: ITimerState }) => state.timer.leftSeconds);
+  const timeModalOpen = useSelector((state: { timer: ITimerState }) => state.timer.timeModalOpen);
   const userList = useSelector((state: { user: IUserState }) => state.user.userList);
   const targetUser = useSelector((state: { user: IUserState }) => state.user.targetUser);
   const timer = useRef<number | undefined>(undefined);
@@ -39,21 +40,21 @@ function Lotto() {
 
   const startCount = () => {
     if (time === null) return;
-    setLeftSeconds(Number(time.format('s')));
+    dispatch({type: 'SET_LEFT_SECONDS', leftSeconds: Number(time.format('s'))});
     timer.current = window.setInterval(() => {
-      setLeftSeconds((time) => time === null ? 0 : time - 1);
+      dispatch({type: 'SUBSTRACT_LEFT_SECONDS' });
     }, 1000);
   };
 
   const setCount = () => {
-    setTime(tempTime);
-    setTimeModalOpen(false);
+    dispatch({type: 'SET_TIME', time: tempTime});
+    dispatch({type: 'SET_TIME_MODAL_OPEN', timeModalOpen: false});
   };
 
   const reset = () => {
-    setTime(null);
-    setTempTime(null);
-    setLeftSeconds(null);
+    dispatch({type: 'SET_TIME', time: null});
+    dispatch({type: 'SET_TEMP_TIME', tempTime: null});
+    dispatch({type: 'SET_LEFT_SECONDS', leftSeconds: null});
     dispatch({type: 'RESET_TARGET_USER'});
   };
 
@@ -81,21 +82,27 @@ function Lotto() {
               <TimePicker
                 value={time}
                 disabled
-                onChange={(newValue: any) => setTime(newValue)} />
+                onChange={(newValue: any) => dispatch({type: 'SET_TIME', time: newValue})} />
               <Modal
                 text="定時"
                 open={timeModalOpen}
-                handleOpen={()=>setTimeModalOpen(true)}
+                handleOpen={()=>dispatch({type: 'SET_TIME_MODAL_OPEN', timeModalOpen: true})}
               >
                 <div className="flex flex-col items-center justify-between">
                   <div className="mb-5">
                     <TimePicker
                       value={tempTime}
-                      onChange={(newValue: any) => setTempTime(newValue)} />
+                      onChange={(newValue: any) => dispatch({type: 'SET_TEMP_TIME', tempTime: newValue})} />
                   </div>
                   <div className="flex items-center w-full">
                     <Button className="m-1 flex-1" onClick={setCount}>確認</Button>
-                    <Button type={BUTTON_TYPE.CANCEL} className="m-1 flex-1"  onClick={()=>setTimeModalOpen(false)}>取消</Button>
+                    <Button 
+                      type={BUTTON_TYPE.CANCEL} 
+                      className="m-1 flex-1"  
+                      onClick={()=>dispatch({type: 'SET_TIME_MODAL_OPEN', timeModalOpen: false})}
+                    >
+                      取消
+                    </Button>
                   </div>
                 </div>
               </Modal>
